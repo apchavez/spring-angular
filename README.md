@@ -253,7 +253,19 @@ Los probes de k8s apuntan a los endpoints de Spring Boot Actuator:
 
 ## Postman
 
-Importar `reactive-customer-service.postman_collection.json` en Postman.
+Los archivos están en la carpeta `postman/`.
+
+| Archivo | Propósito |
+|---|---|
+| `postman/reactive-customer-service.postman_collection.json` | Colección principal (importar siempre) |
+| `postman/reactive-customer-service.local.postman_environment.json` | Environment local — `baseUrl = http://localhost:8080` |
+| `postman/reactive-customer-service.k8s.postman_environment.json` | Environment Kubernetes — `baseUrl = http://customer-service.local` |
+
+**Cómo usar:**
+1. Importar la colección y los dos environments en Postman.
+2. Seleccionar el environment en el dropdown superior derecho:
+   - **Local** para probar con `./gradlew bootRun` (H2 en memoria).
+   - **Kubernetes** para probar contra el cluster k8s (requiere el Ingress activo y `customer-service.local` resuelto en el archivo `hosts`).
 
 La colección incluye dos carpetas:
 

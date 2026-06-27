@@ -2,20 +2,15 @@
   "info": {
     "name": "Reactive Customer Service API",
     "_postman_id": "3e66f4b2-9d57-4fd8-a6e3-c1dc3f2e6a10",
-    "description": "Colección para probar la API REST reactiva de Customer Service (Spring Boot WebFlux). Base path: /api/v1/customers",
+    "description": "Colección para probar la API REST reactiva de Customer Service (Spring Boot WebFlux). Base path: /api/v1/customers\n\nUsar junto con uno de los environments incluidos en postman/:\n- reactive-customer-service.local.postman_environment.json  → local (H2)\n- reactive-customer-service.k8s.postman_environment.json    → Kubernetes (PostgreSQL)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
-      "key": "baseUrl",
-      "value": "http://localhost:8080",
-      "type": "string"
-    },
-    {
       "key": "customerId",
       "value": "",
       "type": "string",
-      "description": "Se establece automáticamente al crear un cliente"
+      "description": "Se establece automáticamente al crear un cliente (POST sin id explícito)"
     }
   ],
   "item": [
