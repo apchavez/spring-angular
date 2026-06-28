@@ -13,8 +13,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+@Validated
 @RestController
 @RequestMapping("/api/v1/customers")
 @Tag(name = "Customers", description = "Operaciones de gestión de clientes")
@@ -40,13 +43,11 @@ public class CustomerController {
     }
 
     @PostMapping
-    @Operation(summary = "Crear cliente", description = "Crea un nuevo cliente. El campo id es opcional.")
+    @Operation(summary = "Crear cliente", description = "Crea un nuevo cliente con ID generado automáticamente.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Cliente creado",
                     content = @Content(schema = @Schema(implementation = CustomerResponseDTO.class))),
             @ApiResponse(responseCode = "400", description = "Campos inválidos (Bean Validation)",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "409", description = "Ya existe un cliente con el ID indicado",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "422", description = "Violación de regla de dominio",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
@@ -72,10 +73,13 @@ public class CustomerController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Cliente encontrado",
                     content = @Content(schema = @Schema(implementation = CustomerResponseDTO.class))),
+            @ApiResponse(responseCode = "400", description = "ID inválido (debe ser mayor que cero)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "Cliente no encontrado",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    public Mono<ResponseEntity<CustomerResponseDTO>> findById(@PathVariable Integer id) {
+    public Mono<ResponseEntity<CustomerResponseDTO>> findById(
+            @PathVariable @Positive(message = "El ID debe ser mayor que cero") Integer id) {
         return applicationService.findById(id)
                 .map(customer -> ResponseEntity.ok(mapper.toResponseDTO(customer)));
     }
@@ -85,7 +89,7 @@ public class CustomerController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Cliente actualizado",
                     content = @Content(schema = @Schema(implementation = CustomerResponseDTO.class))),
-            @ApiResponse(responseCode = "400", description = "Campos inválidos (Bean Validation)",
+            @ApiResponse(responseCode = "400", description = "ID o campos inválidos",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "Cliente no encontrado",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
@@ -93,20 +97,23 @@ public class CustomerController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public Mono<ResponseEntity<CustomerResponseDTO>> updateCustomer(
-            @PathVariable Integer id,
+            @PathVariable @Positive(message = "El ID debe ser mayor que cero") Integer id,
             @Valid @RequestBody CustomerUpdateRequestDTO dto) {
         return applicationService.updateCustomer(id, mapper.toDomain(dto))
                 .map(updated -> ResponseEntity.ok(mapper.toResponseDTO(updated)));
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Eliminar cliente", description = "Elimina el cliente con el ID indicado. Retorna 204 si se eliminó correctamente.")
+    @Operation(summary = "Eliminar cliente", description = "Elimina el cliente con el ID indicado.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Cliente eliminado"),
+            @ApiResponse(responseCode = "400", description = "ID inválido (debe ser mayor que cero)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "Cliente no encontrado",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    public Mono<ResponseEntity<Void>> deleteCustomer(@PathVariable Integer id) {
+    public Mono<ResponseEntity<Void>> deleteCustomer(
+            @PathVariable @Positive(message = "El ID debe ser mayor que cero") Integer id) {
         return applicationService.deleteCustomer(id)
                 .then(Mono.just(ResponseEntity.<Void>noContent().build()));
     }

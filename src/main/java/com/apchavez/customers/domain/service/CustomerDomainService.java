@@ -1,6 +1,5 @@
 package com.apchavez.customers.domain.service;
 
-import com.apchavez.customers.domain.exception.ClienteDuplicadoException;
 import com.apchavez.customers.domain.exception.ClienteNoEncontradoException;
 import com.apchavez.customers.domain.model.Customer;
 import com.apchavez.customers.domain.port.CustomerRepositoryPort;
@@ -16,12 +15,7 @@ public class CustomerDomainService {
     }
 
     public Mono<Customer> createCustomer(Customer customer) {
-        if (customer.id() == null) {
-            return repositoryPort.save(customer);
-        }
-        return repositoryPort.findById(customer.id())
-                .flatMap(existing -> Mono.<Customer>error(new ClienteDuplicadoException(customer.id())))
-                .switchIfEmpty(Mono.defer(() -> repositoryPort.save(customer)));
+        return repositoryPort.save(customer);
     }
 
     public Mono<Customer> findById(Integer id) {

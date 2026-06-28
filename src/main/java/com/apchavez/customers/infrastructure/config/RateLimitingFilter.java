@@ -1,6 +1,8 @@
 package com.apchavez.customers.infrastructure.config;
 
 import jakarta.annotation.PreDestroy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -11,6 +13,7 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 import java.net.InetSocketAddress;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -20,15 +23,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Component
 public class RateLimitingFilter implements WebFilter {
 
-    private static final int MAX_REQUESTS = 100;
+    private static final Logger log = LoggerFactory.getLogger(RateLimitingFilter.class);
+
+    static final int MAX_REQUESTS = 100;
     private static final long WINDOW_MILLIS = 60_000L;
-    private static final String TARGET_PATH = "/api/v1/customers";
+    private static final String TARGET_PATH_PREFIX = "/api/v1/customers";
+    private static final Set<HttpMethod> TARGET_METHODS =
+            Set.of(HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE);
 
     private final ConcurrentHashMap<String, AtomicInteger> windowCounts = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     public RateLimitingFilter() {
-        // Elimina entradas de ventanas pasadas cada minuto para evitar memory leak
         scheduler.scheduleAtFixedRate(
                 this::purgeOldWindows, WINDOW_MILLIS, WINDOW_MILLIS, TimeUnit.MILLISECONDS);
     }
@@ -54,8 +60,8 @@ public class RateLimitingFilter implements WebFilter {
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
 
-        if (!HttpMethod.POST.equals(request.getMethod()) ||
-                !TARGET_PATH.equals(request.getPath().value())) {
+        if (!TARGET_METHODS.contains(request.getMethod()) ||
+                !request.getPath().value().startsWith(TARGET_PATH_PREFIX)) {
             return chain.filter(exchange);
         }
 
@@ -69,6 +75,8 @@ public class RateLimitingFilter implements WebFilter {
         if (current > MAX_REQUESTS) {
             long windowStart = currentWindow * WINDOW_MILLIS;
             long retryAfter = (WINDOW_MILLIS - (System.currentTimeMillis() - windowStart)) / 1000 + 1;
+            log.warn("[RATE-LIMIT] IP '{}' bloqueada — solicitud #{} en ventana {} ({} {})",
+                    ip, current, currentWindow, request.getMethod(), request.getPath());
             exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
             exchange.getResponse().getHeaders().set("Retry-After", String.valueOf(retryAfter));
             return exchange.getResponse().setComplete();

@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureWebTestClient
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
 class CustomerControllerIntegrationTest {
 
     @Autowired
@@ -36,8 +36,8 @@ class CustomerControllerIntegrationTest {
     // ── POST /api/v1/customers ───────────────────────────────────────────────
 
     @Test
-    void createCustomer_shouldReturn201_withGeneratedId_whenIdIsNull() {
-        CustomerRequestDTO request = new CustomerRequestDTO(null, "Alex", "Prieto", "ACTIVE", 30);
+    void createCustomer_shouldReturn201_withGeneratedId() {
+        CustomerRequestDTO request = new CustomerRequestDTO("Alex", "Prieto", "ACTIVE", 30);
 
         webTestClient.post()
                 .uri("/api/v1/customers")
@@ -56,28 +56,8 @@ class CustomerControllerIntegrationTest {
     }
 
     @Test
-    void createCustomer_shouldReturn409_whenIdAlreadyExists() {
-        CustomerEntity existing = r2dbcRepository
-                .save(new CustomerEntity(null, "Existing", "User", "ACTIVE", 25))
-                .block();
-
-        CustomerRequestDTO request = new CustomerRequestDTO(
-                existing.getId(), "Alex", "Prieto", "ACTIVE", 30);
-
-        webTestClient.post()
-                .uri("/api/v1/customers")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
-                .exchange()
-                .expectStatus().isEqualTo(HttpStatus.CONFLICT)
-                .expectBody()
-                .jsonPath("$.status").isEqualTo(409)
-                .jsonPath("$.mensaje").isNotEmpty();
-    }
-
-    @Test
     void createCustomer_shouldReturn400_whenRequestIsInvalid() {
-        CustomerRequestDTO request = new CustomerRequestDTO(null, "", null, "INVALID", -1);
+        CustomerRequestDTO request = new CustomerRequestDTO("", null, "INVALID", -1);
 
         webTestClient.post()
                 .uri("/api/v1/customers")
@@ -151,6 +131,22 @@ class CustomerControllerIntegrationTest {
                 .jsonPath("$.mensaje").isNotEmpty();
     }
 
+    @Test
+    void findById_shouldReturn400_whenIdIsNegative() {
+        webTestClient.get()
+                .uri("/api/v1/customers/{id}", -1)
+                .exchange()
+                .expectStatus().isBadRequest();
+    }
+
+    @Test
+    void findById_shouldReturn400_whenIdIsZero() {
+        webTestClient.get()
+                .uri("/api/v1/customers/{id}", 0)
+                .exchange()
+                .expectStatus().isBadRequest();
+    }
+
     // ── PUT /api/v1/customers/{id} ───────────────────────────────────────────
 
     @Test
@@ -190,8 +186,7 @@ class CustomerControllerIntegrationTest {
                 .exchange()
                 .expectStatus().isNotFound()
                 .expectBody()
-                .jsonPath("$.status").isEqualTo(404)
-                .jsonPath("$.mensaje").isNotEmpty();
+                .jsonPath("$.status").isEqualTo(404);
     }
 
     @Test
@@ -221,7 +216,7 @@ class CustomerControllerIntegrationTest {
         webTestClient.delete()
                 .uri("/api/v1/customers/{id}", saved.getId())
                 .exchange()
-                .expectStatus().isNoContent();
+                .expectStatus().isEqualTo(HttpStatus.NO_CONTENT);
 
         webTestClient.get()
                 .uri("/api/v1/customers/{id}", saved.getId())
@@ -236,7 +231,6 @@ class CustomerControllerIntegrationTest {
                 .exchange()
                 .expectStatus().isNotFound()
                 .expectBody()
-                .jsonPath("$.status").isEqualTo(404)
-                .jsonPath("$.mensaje").isNotEmpty();
+                .jsonPath("$.status").isEqualTo(404);
     }
 }

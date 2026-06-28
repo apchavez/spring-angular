@@ -3,6 +3,7 @@ package com.apchavez.customers.infrastructure.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
@@ -17,7 +18,7 @@ import java.util.UUID;
 public class RequestLoggingFilter implements WebFilter {
 
     private static final Logger log = LoggerFactory.getLogger(RequestLoggingFilter.class);
-    static final String REQUEST_ID_CONTEXT_KEY = "requestId";
+    public static final String REQUEST_ID_CONTEXT_KEY = "requestId";
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
@@ -28,18 +29,16 @@ public class RequestLoggingFilter implements WebFilter {
         exchange.getResponse().getHeaders().add("X-Request-Id", requestId);
 
         return chain.filter(exchange)
-                .doOnSuccess(v -> log.info("[{}] {} {} → {} ({}ms)",
-                        requestId,
-                        request.getMethod(),
-                        request.getPath(),
-                        exchange.getResponse().getStatusCode(),
-                        System.currentTimeMillis() - startMs))
+                .doOnSuccess(v -> {
+                    HttpStatusCode status = exchange.getResponse().getStatusCode();
+                    log.info("[{}] {} {} → {} ({}ms)",
+                            requestId, request.getMethod(), request.getPath(),
+                            status != null ? status : "---",
+                            System.currentTimeMillis() - startMs);
+                })
                 .doOnError(e -> log.error("[{}] {} {} → ERROR ({}ms) — {}",
-                        requestId,
-                        request.getMethod(),
-                        request.getPath(),
-                        System.currentTimeMillis() - startMs,
-                        e.getMessage()))
+                        requestId, request.getMethod(), request.getPath(),
+                        System.currentTimeMillis() - startMs, e.getMessage()))
                 .contextWrite(ctx -> ctx.put(REQUEST_ID_CONTEXT_KEY, requestId));
     }
 }

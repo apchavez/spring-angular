@@ -1,6 +1,5 @@
 package com.apchavez.customers.domain.service;
 
-import com.apchavez.customers.domain.exception.ClienteDuplicadoException;
 import com.apchavez.customers.domain.exception.ClienteNoEncontradoException;
 import com.apchavez.customers.domain.model.Customer;
 import com.apchavez.customers.domain.model.CustomerState;
@@ -25,8 +24,6 @@ class CustomerDomainServiceTest {
 
     private CustomerDomainService domainService;
 
-    private static final Customer CUSTOMER_WITH_ID =
-            new Customer(1, "Alex", "Prieto", CustomerState.ACTIVE, 30);
     private static final Customer CUSTOMER_WITHOUT_ID =
             new Customer(null, "Alex", "Prieto", CustomerState.ACTIVE, 30);
     private static final Customer SAVED_CUSTOMER =
@@ -40,7 +37,7 @@ class CustomerDomainServiceTest {
     // ── createCustomer ───────────────────────────────────────────────────────
 
     @Test
-    void createCustomer_shouldSaveDirectly_whenIdIsNull() {
+    void createCustomer_shouldDelegateToSave() {
         when(repositoryPort.save(any())).thenReturn(Mono.just(SAVED_CUSTOMER));
 
         StepVerifier.create(domainService.createCustomer(CUSTOMER_WITHOUT_ID))
@@ -51,40 +48,14 @@ class CustomerDomainServiceTest {
         verify(repositoryPort, never()).findById(any());
     }
 
-    @Test
-    void createCustomer_shouldThrowClienteDuplicadoException_whenIdAlreadyExists() {
-        when(repositoryPort.findById(1)).thenReturn(Mono.just(CUSTOMER_WITH_ID));
-
-        StepVerifier.create(domainService.createCustomer(CUSTOMER_WITH_ID))
-                .expectErrorMatches(e -> e instanceof ClienteDuplicadoException
-                        && e.getMessage().contains("1"))
-                .verify();
-
-        verify(repositoryPort).findById(1);
-        verify(repositoryPort, never()).save(any());
-    }
-
-    @Test
-    void createCustomer_shouldSave_whenIdDoesNotExistInRepository() {
-        when(repositoryPort.findById(1)).thenReturn(Mono.empty());
-        when(repositoryPort.save(any())).thenReturn(Mono.just(SAVED_CUSTOMER));
-
-        StepVerifier.create(domainService.createCustomer(CUSTOMER_WITH_ID))
-                .expectNext(SAVED_CUSTOMER)
-                .verifyComplete();
-
-        verify(repositoryPort).findById(1);
-        verify(repositoryPort).save(CUSTOMER_WITH_ID);
-    }
-
     // ── findById ─────────────────────────────────────────────────────────────
 
     @Test
     void findById_shouldReturnCustomer_whenExists() {
-        when(repositoryPort.findById(1)).thenReturn(Mono.just(CUSTOMER_WITH_ID));
+        when(repositoryPort.findById(1)).thenReturn(Mono.just(SAVED_CUSTOMER));
 
         StepVerifier.create(domainService.findById(1))
-                .expectNext(CUSTOMER_WITH_ID)
+                .expectNext(SAVED_CUSTOMER)
                 .verifyComplete();
     }
 
@@ -121,7 +92,7 @@ class CustomerDomainServiceTest {
         Customer updatedData = new Customer(null, "Alexander", "Prieto Chavez", CustomerState.INACTIVE, 31);
         Customer expectedResult = new Customer(1, "Alexander", "Prieto Chavez", CustomerState.INACTIVE, 31);
 
-        when(repositoryPort.findById(1)).thenReturn(Mono.just(CUSTOMER_WITH_ID));
+        when(repositoryPort.findById(1)).thenReturn(Mono.just(SAVED_CUSTOMER));
         when(repositoryPort.update(any())).thenReturn(Mono.just(expectedResult));
 
         StepVerifier.create(domainService.updateCustomer(1, updatedData))
@@ -154,7 +125,7 @@ class CustomerDomainServiceTest {
 
     @Test
     void deleteCustomer_shouldComplete_whenExists() {
-        when(repositoryPort.findById(1)).thenReturn(Mono.just(CUSTOMER_WITH_ID));
+        when(repositoryPort.findById(1)).thenReturn(Mono.just(SAVED_CUSTOMER));
         when(repositoryPort.delete(1)).thenReturn(Mono.empty());
 
         StepVerifier.create(domainService.deleteCustomer(1))

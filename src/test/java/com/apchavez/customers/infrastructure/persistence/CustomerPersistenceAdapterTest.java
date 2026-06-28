@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.r2dbc.core.DatabaseClient;
 import reactor.test.StepVerifier;
 
@@ -21,6 +22,9 @@ class CustomerPersistenceAdapterTest {
     private CustomerR2dbcRepository r2dbcRepository;
 
     @Autowired
+    private R2dbcEntityTemplate r2dbcTemplate;
+
+    @Autowired
     private DatabaseClient databaseClient;
 
     @Autowired
@@ -30,7 +34,7 @@ class CustomerPersistenceAdapterTest {
 
     @BeforeEach
     void setUp() {
-        adapter = new CustomerPersistenceAdapter(r2dbcRepository, mapper);
+        adapter = new CustomerPersistenceAdapter(r2dbcRepository, r2dbcTemplate, mapper);
 
         databaseClient.sql("""
                 CREATE TABLE IF NOT EXISTS customer (

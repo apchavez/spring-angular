@@ -52,6 +52,10 @@ tasks.named('test') {
     finalizedBy jacocoTestReport
 }
 
+tasks.named('check') {
+    dependsOn jacocoTestCoverageVerification
+}
+
 jacocoTestReport {
     dependsOn test
     reports {

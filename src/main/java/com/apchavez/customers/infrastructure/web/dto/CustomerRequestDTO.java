@@ -11,9 +11,6 @@ import jakarta.validation.constraints.Size;
 @Schema(description = "Datos para crear un cliente")
 public record CustomerRequestDTO(
 
-        @Schema(description = "ID del cliente; omitir para generación automática", example = "1", nullable = true)
-        Integer id,
-
         @NotBlank(message = "El nombre es requerido")
         @Size(max = 150, message = "El nombre no puede superar 150 caracteres")
         @Schema(description = "Nombre del cliente", example = "Alex")

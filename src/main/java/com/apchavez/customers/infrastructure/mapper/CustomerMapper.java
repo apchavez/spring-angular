@@ -13,7 +13,7 @@ public class CustomerMapper {
 
     public Customer toDomain(CustomerRequestDTO dto) {
         return new Customer(
-                dto.id(),
+                null,
                 dto.nombre(),
                 dto.apellido(),
                 CustomerState.fromString(dto.estado()),

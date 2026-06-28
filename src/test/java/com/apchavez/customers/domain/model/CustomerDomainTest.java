@@ -13,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 class CustomerDomainTest {
 
-
     // ── Construcción válida ──────────────────────────────────────────────────
 
     @Test
@@ -46,6 +45,19 @@ class CustomerDomainTest {
                 .hasMessage("El nombre no puede estar vacío");
     }
 
+    @Test
+    void should_pass_when_nombre_has_exactly_150_chars() {
+        String maxNombre = "A".repeat(150);
+        assertDoesNotThrow(() -> new Customer(null, maxNombre, "Prieto", CustomerState.ACTIVE, 30));
+    }
+
+    @Test
+    void should_throw_when_nombre_has_151_chars() {
+        String overNombre = "A".repeat(151);
+        assertThatThrownBy(() -> new Customer(null, overNombre, "Prieto", CustomerState.ACTIVE, 30))
+                .isInstanceOf(ClienteDominioInvalidoException.class);
+    }
+
     // ── Validaciones de apellido ─────────────────────────────────────────────
 
     @Test
@@ -60,6 +72,19 @@ class CustomerDomainTest {
         assertThatThrownBy(() -> new Customer(null, "Alex", "\t", CustomerState.ACTIVE, 30))
                 .isInstanceOf(ClienteDominioInvalidoException.class)
                 .hasMessage("El apellido no puede estar vacío");
+    }
+
+    @Test
+    void should_pass_when_apellido_has_exactly_150_chars() {
+        String maxApellido = "B".repeat(150);
+        assertDoesNotThrow(() -> new Customer(null, "Alex", maxApellido, CustomerState.ACTIVE, 30));
+    }
+
+    @Test
+    void should_throw_when_apellido_has_151_chars() {
+        String overApellido = "B".repeat(151);
+        assertThatThrownBy(() -> new Customer(null, "Alex", overApellido, CustomerState.ACTIVE, 30))
+                .isInstanceOf(ClienteDominioInvalidoException.class);
     }
 
     // ── Validaciones de edad ─────────────────────────────────────────────────
@@ -84,7 +109,17 @@ class CustomerDomainTest {
     }
 
     @Test
-    void should_throw_when_edad_exceeds_150() {
+    void should_pass_when_edad_is_exactly_1() {
+        assertDoesNotThrow(() -> new Customer(null, "Alex", "Prieto", CustomerState.ACTIVE, 1));
+    }
+
+    @Test
+    void should_pass_when_edad_is_exactly_150() {
+        assertDoesNotThrow(() -> new Customer(null, "Alex", "Prieto", CustomerState.ACTIVE, 150));
+    }
+
+    @Test
+    void should_throw_when_edad_is_151() {
         assertThatThrownBy(() -> new Customer(null, "Alex", "Prieto", CustomerState.ACTIVE, 151))
                 .isInstanceOf(ClienteDominioInvalidoException.class);
     }
@@ -123,5 +158,4 @@ class CustomerDomainTest {
         assertThatThrownBy(() -> new Customer(null, nombre, "Prieto", CustomerState.ACTIVE, 30))
                 .isInstanceOf(ClienteDominioInvalidoException.class);
     }
-
 }

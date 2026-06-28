@@ -9,7 +9,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureWebTestClient
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
 class ActuatorHealthTest {
 
     @Autowired

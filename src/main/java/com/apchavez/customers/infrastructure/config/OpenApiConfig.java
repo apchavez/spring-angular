@@ -1,7 +1,9 @@
 package com.apchavez.customers.infrastructure.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.License;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,6 +16,13 @@ public class OpenApiConfig {
                 .info(new Info()
                         .title("Reactive Customer Service API")
                         .description("API REST reactiva para la gestión de clientes con Spring Boot WebFlux y arquitectura hexagonal.")
-                        .version("1.0.0"));
+                        .version("1.0.0")
+                        .contact(new Contact()
+                                .name("Alexander Prieto Chavez")
+                                .email("alexander.prieto.chavez@gmail.com")
+                                .url("https://github.com/apchavez"))
+                        .license(new License()
+                                .name("MIT")
+                                .url("https://opensource.org/licenses/MIT")));
     }
 }

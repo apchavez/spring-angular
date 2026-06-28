@@ -26,8 +26,7 @@ spec:
         runAsGroup: 1001
       containers:
         - name: customer-service
-          # Imagen publicada por CI en cada push a main
-          # Reemplazar OWNER con el usuario/org de GitHub, o usar sha-XXXXXXX para un deploy concreto
+          # Imagen publicada por CI en cada push a main (ver .github/workflows/ci.yml)
           image: ghcr.io/apchavez/reactive-customer-service:latest
           imagePullPolicy: Always
           ports:
