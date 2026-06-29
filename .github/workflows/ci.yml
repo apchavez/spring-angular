@@ -54,7 +54,7 @@ jobs:
 
       - name: SonarCloud analysis
         if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.SONAR_ORGANIZATION != ''
-        run: ./gradlew sonar --no-daemon
+        run: ./gradlew sonar --no-daemon -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }} -Dsonar.projectKey=apchavez_spring-webflux-hexagonal-arch
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
