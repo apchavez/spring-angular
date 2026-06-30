@@ -13,9 +13,9 @@ Fullstack monorepo with a reactive **Spring Boot WebFlux** backend following **H
 
 ```
 ├── api/        Spring Boot WebFlux backend (Java 21, Hexagonal Architecture)
-│   ├── k8s/    Kubernetes manifests (api + kafka + redis + supporting services)
-│   └── postman/ Postman collection (REST API)
+│   └── k8s/    Kubernetes manifests (api + kafka + redis + supporting services)
 ├── web/        Angular 21 frontend (Angular Material, standalone components)
+├── postman/    Postman collection + environments (local, k8s)
 ├── docker/     PostgreSQL init script
 └── docker-compose.yml
 ```
@@ -120,7 +120,11 @@ npm start
 
 ## Postman Collection
 
-Import `api/postman/spring-webflux-hexagonal-arch.postman_collection.json` into Postman.
+Import `postman/spring-webflux-hexagonal-arch.postman_collection.json` into Postman.
+
+Two environments are included:
+- `postman/spring-webflux-hexagonal-arch.local.postman_environment.json` — `http://localhost:8080`
+- `postman/spring-webflux-hexagonal-arch.k8s.postman_environment.json` — `http://customer-service.local`
 
 The collection covers all CRUD endpoints, validation error cases, and an **Observability** folder with requests to `/actuator/health/liveness`, `/actuator/health/readiness`, and `/actuator/prometheus`.
 
