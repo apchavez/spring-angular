@@ -191,6 +191,23 @@ Manifests in `api/k8s/`:
 | `ingress.yaml` | NGINX Ingress at `customer-service.local` |
 | `kafka.yaml` | Single-node Kafka (Bitnami KRaft, no Zookeeper) |
 | `redis.yaml` | Redis deployment for reactive rate limiting |
+| `prometheus-rule.yaml` | PrometheusRule CRD with alerting rules (requires Prometheus Operator) |
+
+---
+
+## Observability
+
+The API exposes metrics at `/actuator/prometheus` (Micrometer + Prometheus registry) and distributed traces via OpenTelemetry (OTLP exporter, configurable via `OTEL_EXPORTER_OTLP_ENDPOINT`). All requests are logged with a `X-Request-Id` correlation header.
+
+`api/k8s/prometheus-rule.yaml` contains a `PrometheusRule` CRD (Prometheus Operator) with three alert rules:
+
+| Alert | Severity | Condition |
+|---|---|---|
+| `HighErrorRate` | critical | > 5% of requests return 5xx for 2 min |
+| `HighP99Latency` | warning | P99 latency > 1 s for 2 min |
+| `PodNotReady` | critical | Any pod not ready for 2 min |
+
+Requires [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator) installed in the cluster.
 
 ---
 
