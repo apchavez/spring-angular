@@ -192,6 +192,7 @@ Manifests in `api/k8s/`:
 | `kafka.yaml` | Single-node Kafka (Bitnami KRaft, no Zookeeper) |
 | `redis.yaml` | Redis deployment for reactive rate limiting |
 | `prometheus-rule.yaml` | PrometheusRule CRD with alerting rules (requires Prometheus Operator) |
+| `grafana.yaml` | Grafana deployment with pre-provisioned Prometheus datasource and dashboard |
 
 ---
 
@@ -208,6 +209,12 @@ The API exposes metrics at `/actuator/prometheus` (Micrometer + Prometheus regis
 | `PodNotReady` | critical | Any pod not ready for 2 min |
 
 Requires [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator) installed in the cluster.
+
+`api/k8s/grafana.yaml` deploys Grafana with a pre-provisioned Prometheus datasource and a dashboard covering request rate, error rate, P50/P99 latency, and JVM memory panels.
+
+```bash
+kubectl port-forward svc/grafana 3000:3000 -n customer-service
+```
 
 ---
 
