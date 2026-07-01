@@ -1,12 +1,6 @@
 spring:
-  r2dbc:
-    url: r2dbc:h2:mem:///test-db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    username: sa
-    password:
-  sql:
-    init:
-      mode: always
-      data-locations: ""
+  flyway:
+    locations: classpath:db/migration
   data:
     redis:
       host: localhost

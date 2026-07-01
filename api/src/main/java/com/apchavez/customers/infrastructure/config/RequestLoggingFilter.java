@@ -31,14 +31,21 @@ public class RequestLoggingFilter implements WebFilter {
         return chain.filter(exchange)
                 .doOnSuccess(v -> {
                     HttpStatusCode status = exchange.getResponse().getStatusCode();
-                    log.info("[{}] {} {} → {} ({}ms)",
-                            requestId, request.getMethod(), request.getPath(),
-                            status != null ? status : "---",
-                            System.currentTimeMillis() - startMs);
+                    log.atInfo()
+                            .addKeyValue("requestId", requestId)
+                            .addKeyValue("http.method", request.getMethod().name())
+                            .addKeyValue("url.path", request.getPath().value())
+                            .addKeyValue("http.response.status_code", status != null ? status.value() : 0)
+                            .addKeyValue("event.duration_ms", System.currentTimeMillis() - startMs)
+                            .log("HTTP request completed");
                 })
-                .doOnError(e -> log.error("[{}] {} {} → ERROR ({}ms) — {}",
-                        requestId, request.getMethod(), request.getPath(),
-                        System.currentTimeMillis() - startMs, e.getMessage()))
+                .doOnError(e -> log.atError()
+                        .addKeyValue("requestId", requestId)
+                        .addKeyValue("http.method", request.getMethod().name())
+                        .addKeyValue("url.path", request.getPath().value())
+                        .addKeyValue("event.duration_ms", System.currentTimeMillis() - startMs)
+                        .addKeyValue("error.type", e.getClass().getSimpleName())
+                        .log("HTTP request failed", e))
                 .contextWrite(ctx -> ctx.put(REQUEST_ID_CONTEXT_KEY, requestId));
     }
 }

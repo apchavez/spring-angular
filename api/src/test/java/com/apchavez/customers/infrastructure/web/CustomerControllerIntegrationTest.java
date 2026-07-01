@@ -3,6 +3,7 @@ package com.apchavez.customers.infrastructure.web;
 import com.apchavez.customers.infrastructure.config.JwtService;
 import com.apchavez.customers.infrastructure.persistence.CustomerEntity;
 import com.apchavez.customers.infrastructure.persistence.CustomerR2dbcRepository;
+import com.apchavez.customers.AbstractIntegrationTest;
 import com.apchavez.customers.infrastructure.web.dto.CustomerRequestDTO;
 import com.apchavez.customers.infrastructure.web.dto.CustomerResponseDTO;
 import com.apchavez.customers.infrastructure.web.dto.CustomerUpdateRequestDTO;
@@ -13,15 +14,13 @@ import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTest
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureWebTestClient
-@ActiveProfiles("test")
-class CustomerControllerIntegrationTest {
+class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private WebTestClient webTestClient;
