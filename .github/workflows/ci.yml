@@ -179,6 +179,8 @@ jobs:
     permissions:
       contents: write
       packages: write
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@v7
 
@@ -205,6 +207,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Construir y publicar imagen API
+        id: build
         uses: docker/build-push-action@v7
         with:
           context: ./api
@@ -214,6 +217,29 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Instalar Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Firmar imagen API con Cosign (keyless)
+        run: |
+          cosign sign --yes \
+            "${{ env.REGISTRY }}/${{ github.repository }}-api@${{ steps.build.outputs.digest }}"
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ github.repository }}-api
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+
+      - name: Generar SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.REGISTRY }}/${{ github.repository }}-api@${{ steps.build.outputs.digest }}
+          artifact-name: sbom-api-${{ github.sha }}.spdx.json
+          output-file: sbom-api.spdx.json
+          format: spdx-json
 
       - name: Pinear tag sha en deployment.yaml
         run: |
@@ -233,6 +259,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@v7
 
@@ -259,6 +287,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Construir y publicar imagen Web
+        id: build
         uses: docker/build-push-action@v7
         with:
           context: ./web
@@ -268,3 +297,26 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Instalar Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Firmar imagen Web con Cosign (keyless)
+        run: |
+          cosign sign --yes \
+            "${{ env.REGISTRY }}/${{ github.repository }}-web@${{ steps.build.outputs.digest }}"
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ github.repository }}-web
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+
+      - name: Generar SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.REGISTRY }}/${{ github.repository }}-web@${{ steps.build.outputs.digest }}
+          artifact-name: sbom-web-${{ github.sha }}.spdx.json
+          output-file: sbom-web.spdx.json
+          format: spdx-json
