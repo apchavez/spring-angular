@@ -68,7 +68,7 @@ jobs:
 
       - name: SonarCloud analysis (push)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.SONAR_ORGANIZATION != ''
-        run: ./gradlew sonar --no-daemon -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }} -Dsonar.projectKey=apchavez_spring-angular-fullstack-k8s -Dsonar.projectName=spring-angular-fullstack-k8s
+        run: ./gradlew sonar --no-daemon -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }} -Dsonar.projectKey=spring-angular-fullstack-k8s -Dsonar.projectName=spring-angular-fullstack-k8s
         working-directory: api
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -79,7 +79,7 @@ jobs:
         run: >
           ./gradlew sonar --no-daemon
           -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }}
-          -Dsonar.projectKey=apchavez_spring-angular-fullstack-k8s
+          -Dsonar.projectKey=spring-angular-fullstack-k8s
           -Dsonar.projectName=spring-angular-fullstack-k8s
           -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
           -Dsonar.pullrequest.branch=${{ github.head_ref }}
