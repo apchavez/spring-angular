@@ -64,12 +64,19 @@ dependencies {
     testImplementation 'io.projectreactor:reactor-test'
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.2'
     testImplementation 'net.jqwik:jqwik:1.10.1'
+    // Used only to deterministically set/clear OS env vars in StartupConfigTest —
+    // System.getenv() reads the real process environment and can't be mocked (Mockito
+    // explicitly refuses to mock java.lang.System statics).
+    testImplementation 'org.junit-pioneer:junit-pioneer:2.3.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
+    // Required by JUnit Pioneer's @SetEnvironmentVariable/@ClearEnvironmentVariable
+    // (used in StartupConfigTest), which mutates the JDK's internal env var map via reflection.
+    jvmArgs '--add-opens', 'java.base/java.util=ALL-UNNAMED', '--add-opens', 'java.base/java.lang=ALL-UNNAMED'
 }
 
 tasks.named('check') {
